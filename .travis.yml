@@ -1,4 +1,3 @@
 language: go
 go_import_path: github.com/gmauleon
-install: go get -t ./...
-script: make go
+script: make deps go
