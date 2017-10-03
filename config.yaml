@@ -1,0 +1,7 @@
+port: 8080
+queueCapacity: 500
+
+zabbixServerHost: zabbix-server-here
+zabbixServerPort: 10051
+zabbixtHost: kubernetes-cluster-prometheus
+zabbixKeyPrefix: prometheus

@@ -1,0 +1,9 @@
+*~
+*#
+.#*
+\#*#
+.*.sw[a-z]
+*.un~
+pkg/
+
+alertmanager-zabbix-webhook
