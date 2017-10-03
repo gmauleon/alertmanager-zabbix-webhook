@@ -9,4 +9,5 @@ COPY config.yaml /etc/webhook
 RUN adduser webhook -s /bin/false -D webhook
 USER webhook
 
-CMD ["/usr/bin/alertmanager-zabbix-webhook", "-config", "/etc/webhook/config.yaml"]
+ENTRYPOINT ["/usr/bin/alertmanager-zabbix-webhook"]
+CMD ["-config", "/etc/webhook/config.yaml"]

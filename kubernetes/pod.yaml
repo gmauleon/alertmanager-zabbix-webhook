@@ -14,7 +14,11 @@ spec:
       limits:
         memory: 10Mi
         cpu: 0.1
-  restartPolicy: Always
+    restartPolicy: Always
+    volumeMounts:
+    - mountPath: /etc/provisioner/config.yaml
+      name: alertmanager-zabbix
+      subPath: config-provisioner.yaml
   - name: webhook
     image: gmauleon/alertmanager-zabbix-webhook
     imagePullPolicy: IfNotPresent
@@ -25,4 +29,8 @@ spec:
       limits:
         memory: 10Mi
         cpu: 0.1
-  restartPolicy: Always
+    restartPolicy: Always
+    volumeMounts:
+    - mountPath: /etc/provisioner/config.yaml
+      name: alertmanager-zabbix
+      subPath: config-webhook.yaml

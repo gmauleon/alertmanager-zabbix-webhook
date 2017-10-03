@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-zabbix
+data:
+  config-provisioner.yaml: |+
+    rulesUrl: http://prometheus-server-here/prometheus/rules
+    rulesPollingTime: 3600 # seconds
+    zabbixApiUrl: https://zabbix-server-here/zabbix/api_jsonrpc.php
+    zabbixApiUser: Admin
+    zabbixApiPassword: zabbix
+    zabbixKeyPrefix: prometheus
+    zabbixHost: kubernetes-cluster-prometheus
+    zabbixHostGroups:
+      - Kubernetes
+      - Prometheus
+  config-webhook.yaml: |+
+    port: 8080
+    queueCapacity: 500
+    zabbixServerHost: zabbix-server-here
+    zabbixServerPort: 10051
+    zabbixtHost: kubernetes-cluster-prometheus
+    zabbixKeyPrefix: prometheus
+
