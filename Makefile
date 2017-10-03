@@ -1,7 +1,6 @@
 all: deps build docker
 deps:
-	go get github.com/blacked/go-zabbix
-	go get github.com/sirupsen/logrus
+	go get -t ./...
 build:
 	CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' .
 docker:
