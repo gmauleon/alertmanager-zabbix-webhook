@@ -3,10 +3,22 @@ kind: Pod
 metadata:
   name: alertmanager-zabbix
 spec:
+  restartPolicy: Always
   containers:
   - name: provisioner
     image: gmauleon/alertmanager-zabbix-provisioner
-    imagePullPolicy: IfNotPresent
+    imagePullPolicy: Always
+    env:
+    - name: ZABBIX_API_USER
+      valueFrom:
+        secretKeyRef:
+          name: alertmanager-zabbix-secret
+          key: zabbixApiUser
+    - name: ZABBIX_API_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: alertmanager-zabbix-secret
+          key: zabbixApiPassword
     resources:
       requests:
         memory: 10Mi
@@ -14,14 +26,17 @@ spec:
       limits:
         memory: 10Mi
         cpu: 0.1
-    restartPolicy: Always
     volumeMounts:
     - mountPath: /etc/provisioner/config.yaml
-      name: alertmanager-zabbix
+      name: alertmanager-zabbix-config
       subPath: config-provisioner.yaml
+    - mountPath: /etc/provisioner/ca.pem
+      name: alertmanager-zabbix-config
+      subPath: ca.pem
   - name: webhook
     image: gmauleon/alertmanager-zabbix-webhook
-    imagePullPolicy: IfNotPresent
+    imagePullPolicy: Always
+    #imagePullPolicy: IfNotPresent
     resources:
       requests:
         memory: 10Mi
@@ -29,8 +44,11 @@ spec:
       limits:
         memory: 10Mi
         cpu: 0.1
-    restartPolicy: Always
     volumeMounts:
-    - mountPath: /etc/provisioner/config.yaml
-      name: alertmanager-zabbix
+    - mountPath: /etc/webhook/config.yaml
+      name: alertmanager-zabbix-config
       subPath: config-webhook.yaml
+  volumes:
+  - name: alertmanager-zabbix-config
+    configMap:
+      name: alertmanager-zabbix-config
