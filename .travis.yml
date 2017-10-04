@@ -4,10 +4,11 @@ branches:
     - /^v\d+\.\d+\.\d+$/
 
 language: go
-script: make go-deps go-build
-after_success:
-  - make docker-build
+
+# Putting docker push here or the build will not fail
+script:
+  - make go-deps go-build docker-build
   - docker tag alertmanager-zabbix-webhook "$TRAVIS_REPO_SLUG":${TRAVIS_TAG#"v"}
   - docker tag alertmanager-zabbix-webhook "$TRAVIS_REPO_SLUG":latest
-  - docker login -u="$DOCKER_USER" -p="$DOCKER_PASSWORD"
+  - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
   - docker push "$TRAVIS_REPO_SLUG"
