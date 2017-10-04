@@ -8,6 +8,6 @@ script: make go-deps go-build
 after_success:
   - make docker-build
   - docker login -u "$DOCKER_USER" -p "$DOCKER_PASSWORD"
-  - docker tag alertmanager-zabbix-webhook "$TRAVIS_REPO_SLUG":"$TRAVIS_TAG"
+  - docker tag alertmanager-zabbix-webhook "$TRAVIS_REPO_SLUG":${TRAVIS_TAG#"v"}
   - docker tag alertmanager-zabbix-webhook "$TRAVIS_REPO_SLUG":latest
   - docker push "$TRAVIS_REPO_SLUG"
