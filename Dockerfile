@@ -8,6 +8,7 @@ COPY config.yaml /etc/webhook
 COPY alertmanager-zabbix-webhook  /usr/bin
 RUN chmod +x /usr/bin/alertmanager-zabbix-webhook
 
+EXPOSE 8080
 USER webhook
 
 ENTRYPOINT ["/usr/bin/alertmanager-zabbix-webhook"]
