@@ -1,7 +1,13 @@
-port: 8080                                 # Webhook listening port
-queueCapacity: 500                         # Number of alerts the webhook queue can contains while waiting for processing
+# Webhook listening port
+port: 8080
+# Number of alerts the webhook queue can contains while waiting for processing
+queueCapacity: 500
 
-zabbixServerHost: zabbix-server-here       # Hostname of your zabbix server
-zabbixServerPort: 10051                    # Trapper port of your zabbix server
-zabbixtHost: kubernetes-cluster-prometheus # Name of the host to send alerts to in Zabbix
-zabbixKeyPrefix: prometheus                # Items key prefix, keys will be zabbixKeyPrefix.alertname
+# Hostname of your zabbix server
+zabbixServerHost: zabbix-server-here
+# Trapper port of your zabbix server
+zabbixServerPort: 10051
+# Look in this annotation for a zabbix host to send alerts to, if not present alert is ignored
+zabbixHostAnnotation: zabbix_host
+# Items key prefix, keys will be zabbixKeyPrefix.alertname
+zabbixKeyPrefix: prometheus

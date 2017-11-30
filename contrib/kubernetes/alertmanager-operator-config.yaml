@@ -10,6 +10,6 @@ route:
 receivers:
 - name: 'zabbix'
   webhook_configs:
-    - url: http://alertmanager-zabbix:8080/alerts
+    - url: http://alertmanager-zabbix-webhook:8080/alerts
       send_resolved: true
 

@@ -1,10 +1,11 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: alertmanager-zabbix
+  name: alertmanager-zabbix-webhook
+  namespace: monitoring
 spec:
   selector:
-    app: alertmanager-zabbix
+    app: alertmanager-zabbix-webhook
   type: ClusterIP
   ports:
     - name: http
@@ -14,52 +15,20 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: alertmanager-zabbix
+  name: alertmanager-zabbix-webhook
+  namespace: monitoring
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        app: alertmanager-zabbix
+        app: alertmanager-zabbix-webhook
     spec:
       restartPolicy: Always
       containers:
-      - name: provisioner
-        image: gmauleon/alertmanager-zabbix-provisioner
-        imagePullPolicy: Always
-        ports:
-        - name: http
-          protocol: TCP
-          containerPort: 8080
-        env:
-        - name: ZABBIX_API_USER
-          valueFrom:
-            secretKeyRef:
-              name: alertmanager-zabbix-secret
-              key: zabbixApiUser
-        - name: ZABBIX_API_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: alertmanager-zabbix-secret
-              key: zabbixApiPassword
-        resources:
-          requests:
-            memory: 10Mi
-            cpu: 0.1
-          limits:
-            memory: 10Mi
-            cpu: 0.1
-        volumeMounts:
-        - mountPath: /etc/provisioner/config.yaml
-          name: alertmanager-zabbix-config
-          subPath: config-provisioner.yaml
-        - mountPath: /etc/provisioner/ca.pem
-          name: alertmanager-zabbix-config
-          subPath: ca.pem
       - name: webhook
-        image: gmauleon/alertmanager-zabbix-webhook
+        image: gmauleon/alertmanager-zabbix-webhook:0.2.0
         imagePullPolicy: Always
-        #imagePullPolicy: IfNotPresent
         resources:
           requests:
             memory: 10Mi
@@ -69,9 +38,11 @@ spec:
             cpu: 0.1
         volumeMounts:
         - mountPath: /etc/webhook/config.yaml
-          name: alertmanager-zabbix-config
+          name: alertmanager-zabbix-webhook-config
           subPath: config-webhook.yaml
+          #      imagePullSecrets:
+          #        - name: myprivatereposecret
       volumes:
-      - name: alertmanager-zabbix-config
+      - name: alertmanager-zabbix-webhook-config
         configMap:
-          name: alertmanager-zabbix-config
+          name: alertmanager-zabbix-webhook-config

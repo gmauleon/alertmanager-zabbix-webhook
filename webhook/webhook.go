@@ -21,12 +21,13 @@ type WebHook struct {
 }
 
 type WebHookConfig struct {
-	Port             int    `yaml:"port"`
-	QueueCapacity    int    `yaml:"queueCapacity"`
-	ZabbixServerHost string `yaml:"zabbixServerHost"`
-	ZabbixServerPort int    `yaml:"zabbixServerPort"`
-	ZabbixHost       string `yaml:"zabbixHost"`
-	ZabbixKeyPrefix  string `yaml:"zabbixKeyPrefix"`
+	Port                 int    `yaml:"port"`
+	QueueCapacity        int    `yaml:"queueCapacity"`
+	ZabbixServerHost     string `yaml:"zabbixServerHost"`
+	ZabbixServerPort     int    `yaml:"zabbixServerPort"`
+	ZabbixHostDefault    string `yaml:"zabbixHostDefault"`
+	ZabbixHostAnnotation string `yaml:"zabbixHostAnnotation"`
+	ZabbixKeyPrefix      string `yaml:"zabbixKeyPrefix"`
 }
 
 type HookRequest struct {
@@ -65,12 +66,12 @@ func ConfigFromFile(filename string) (cfg *WebHookConfig, err error) {
 
 	// Default values
 	config := WebHookConfig{
-		Port:             8080,
-		QueueCapacity:    500,
-		ZabbixServerHost: "127.0.0.1",
-		ZabbixServerPort: 10051,
-		ZabbixHost:       "alertmanager",
-		ZabbixKeyPrefix:  "prometheus",
+		Port:                 8080,
+		QueueCapacity:        500,
+		ZabbixServerHost:     "127.0.0.1",
+		ZabbixServerPort:     10051,
+		ZabbixHostAnnotation: "zabbix_host",
+		ZabbixKeyPrefix:      "prometheus",
 	}
 
 	err = yaml.Unmarshal(configFile, &config)
@@ -144,16 +145,19 @@ func (hook *WebHook) processAlerts() {
 				return
 			}
 
-			key := fmt.Sprintf("%s.%s", hook.config.ZabbixKeyPrefix, strings.ToLower(r.CommonLabels["alertname"]))
-			value := "0"
-			if r.Status == "firing" {
-				value = "1"
+			host, _ := r.CommonAnnotations[hook.config.ZabbixHostAnnotation]
+
+			// Send alerts only if a host annotation is present
+			if host != "" {
+				key := fmt.Sprintf("%s.%s", hook.config.ZabbixKeyPrefix, strings.ToLower(r.CommonLabels["alertname"]))
+				value := "0"
+				if r.Status == "firing" {
+					value = "1"
+				}
+
+				log.Infof("added Zabbix metrics, host: '%s' key: '%s', value: '%s'", host, key, value)
+				metrics = append(metrics, zabbix.NewMetric(host, key, value))
 			}
-
-			host := hook.config.ZabbixHost
-
-			log.Infof("added Zabbix metrics, host: '%s' key: '%s', value: '%s'", host, key, value)
-			metrics = append(metrics, zabbix.NewMetric(host, key, value))
 		default:
 			if len(metrics) != 0 {
 				hook.zabbixSend(metrics)
