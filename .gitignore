@@ -6,5 +6,6 @@
 *.un~
 pkg/
 .vscode/
+debug
 
 alertmanager-zabbix-webhook
