@@ -3,20 +3,21 @@ package webhook
 import (
 	"encoding/json"
 	"fmt"
-	zabbix "github.com/blacked/go-zabbix"
-	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	zabbix "github.com/blacked/go-zabbix"
+	"github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
 )
 
 var log = logrus.WithField("context", "webhook")
 
 type WebHook struct {
-	channel chan *HookRequest
+	channel chan *Alert
 	config  WebHookConfig
 }
 
@@ -43,16 +44,18 @@ type HookRequest struct {
 }
 
 type Alert struct {
-	Labels      map[string]string `json:"labels"`
-	Annotations map[string]string `json:"annotations"`
-	StartsAt    string            `json:"startsAt,omitempty"`
-	EndsAt      string            `json:"EndsAt,omitempty"`
+	Status       string            `json:"status"`
+	Labels       map[string]string `json:"labels"`
+	Annotations  map[string]string `json:"annotations"`
+	StartsAt     string            `json:"startsAt,omitempty"`
+	EndsAt       string            `json:"EndsAt,omitempty"`
+	GeneratorURL string            `json:"generatorURL"`
 }
 
 func New(cfg *WebHookConfig) *WebHook {
 
 	return &WebHook{
-		channel: make(chan *HookRequest, cfg.QueueCapacity),
+		channel: make(chan *Alert, cfg.QueueCapacity),
 		config:  *cfg,
 	}
 }
@@ -123,12 +126,10 @@ func (hook *WebHook) postHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if m.Status == "" || m.CommonLabels["alertname"] == "" {
-		http.Error(w, "missing fields in request body", 400)
-		return
+	for index := range m.Alerts {
+		hook.channel <- &m.Alerts[index]
 	}
 
-	hook.channel <- &m
 }
 
 func (hook *WebHook) processAlerts() {
@@ -139,19 +140,19 @@ func (hook *WebHook) processAlerts() {
 	var metrics []*zabbix.Metric
 	for {
 		select {
-		case r := <-hook.channel:
-			if r == nil {
+		case a := <-hook.channel:
+			if a == nil {
 				log.Info("Queue Closed")
 				return
 			}
 
-			host, _ := r.CommonAnnotations[hook.config.ZabbixHostAnnotation]
+			host, _ := a.Annotations[hook.config.ZabbixHostAnnotation]
 
 			// Send alerts only if a host annotation is present
 			if host != "" {
-				key := fmt.Sprintf("%s.%s", hook.config.ZabbixKeyPrefix, strings.ToLower(r.CommonLabels["alertname"]))
+				key := fmt.Sprintf("%s.%s", hook.config.ZabbixKeyPrefix, strings.ToLower(a.Labels["alertname"]))
 				value := "0"
-				if r.Status == "firing" {
+				if a.Status == "firing" {
 					value = "1"
 				}
 

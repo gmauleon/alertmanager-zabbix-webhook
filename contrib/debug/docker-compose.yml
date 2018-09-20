@@ -1,0 +1,12 @@
+version: '3'
+services:
+  alertmanager:
+    container_name: alertmanager
+    image: prom/alertmanager
+    command:
+      - "--config.file=/etc/alertmanager/config.yml"
+    volumes:
+      - ./alertmanager.yaml:/etc/alertmanager/config.yml
+    ports:
+      - "9093:9093"
+    network_mode: "host"
