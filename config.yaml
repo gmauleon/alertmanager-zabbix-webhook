@@ -7,7 +7,9 @@ queueCapacity: 500
 zabbixServerHost: zabbix-server-here
 # Trapper port of your zabbix server
 zabbixServerPort: 10051
-# Look in this annotation for a zabbix host to send alerts to, if not present alert is ignored
+# Look in this annotation for a zabbix host to send alerts to, if not present and no default, alert is ignored
 zabbixHostAnnotation: zabbix_host
+# Default host to attach to alerts
+zabbixHostDefault: ""
 # Items key prefix, keys will be zabbixKeyPrefix.alertname
 zabbixKeyPrefix: prometheus
