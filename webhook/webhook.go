@@ -153,7 +153,7 @@ func (hook *WebHook) processAlerts() {
 			}
 
 			// Send alerts only if a host annotation is present or configuration is not nill
-			if host != "" || hook.config.ZabbixHostDefault != "" {
+			if host != "" {
 				key := fmt.Sprintf("%s.%s", hook.config.ZabbixKeyPrefix, strings.ToLower(a.Labels["alertname"]))
 				value := "0"
 				if a.Status == "firing" {
