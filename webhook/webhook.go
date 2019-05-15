@@ -147,7 +147,10 @@ func (hook *WebHook) processAlerts() {
 				return
 			}
 
-			host, _ := a.Annotations[hook.config.ZabbixHostAnnotation]
+			host, exists := a.Annotations[hook.config.ZabbixHostAnnotation]
+			if !exists {
+				host = hook.config.ZabbixHostDefault
+			}
 
 			// Send alerts only if a host annotation is present or configuration is not nill
 			if host != "" || hook.config.ZabbixHostDefault != "" {
@@ -155,9 +158,6 @@ func (hook *WebHook) processAlerts() {
 				value := "0"
 				if a.Status == "firing" {
 					value = "1"
-				}
-				if host == "" {
-					host = hook.config.ZabbixHostDefault
 				}
 
 				log.Infof("added Zabbix metrics, host: '%s' key: '%s', value: '%s'", host, key, value)
