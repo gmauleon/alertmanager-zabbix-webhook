@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	zabbix "github.com/blacked/go-zabbix"
+	zabbix "github.com/adubkov/go-zabbix"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
@@ -111,7 +111,7 @@ func (hook *WebHook) alertsHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		hook.postHandler(w, r)
 	default:
-		http.Error(w, "unsupported HTTP method", 400)
+		http.Error(w, "Unsupported HTTP method", 400)
 	}
 }
 
@@ -122,8 +122,8 @@ func (hook *WebHook) postHandler(w http.ResponseWriter, r *http.Request) {
 
 	var m HookRequest
 	if err := dec.Decode(&m); err != nil {
-		log.Errorf("error decoding message: %v", err)
-		http.Error(w, "request body is not valid json", 400)
+		log.Errorf("Error decoding message: %v", err)
+		http.Error(w, "Request body is not valid json", 400)
 		return
 	}
 
@@ -143,7 +143,7 @@ func (hook *WebHook) processAlerts() {
 		select {
 		case a := <-hook.channel:
 			if a == nil {
-				log.Info("Queue Closed")
+				log.Info("Queue closed")
 				return
 			}
 
@@ -155,12 +155,24 @@ func (hook *WebHook) processAlerts() {
 			// Send alerts only if a host annotation is present or configuration for default host is not empty
 			if host != "" {
 				key := fmt.Sprintf("%s.%s", hook.config.ZabbixKeyPrefix, strings.ToLower(a.Labels["alertname"]))
-				value := "0"
-				if a.Status == "firing" {
-					value = "1"
+
+				var value string
+
+				if zabbixValue, ok := a.Annotations["zabbix_value"]; ok {
+					if a.Status == "firing" {
+						value = zabbixValue
+					} else {
+						value = ""
+					}
+				} else {
+					if a.Status == "firing" {
+						value = "1"
+					} else {
+						value = "0"
+					}
 				}
 
-				log.Infof("added Zabbix metrics, host: '%s' key: '%s', value: '%s'", host, key, value)
+				log.Infof("Added Zabbix metrics, host: '%s' key: '%s', value: '%s'", host, key, value)
 				metrics = append(metrics, zabbix.NewMetric(host, key, value))
 			}
 		default:
@@ -179,13 +191,13 @@ func (hook *WebHook) zabbixSend(metrics []*zabbix.Metric) {
 	packet := zabbix.NewPacket(metrics)
 
 	// Send packet to zabbix
-	log.Infof("sending to zabbix '%s:%d'", hook.config.ZabbixServerHost, hook.config.ZabbixServerPort)
+	log.Infof("Sending to zabbix '%s:%d'", hook.config.ZabbixServerHost, hook.config.ZabbixServerPort)
 	z := zabbix.NewSender(hook.config.ZabbixServerHost, hook.config.ZabbixServerPort)
 	_, err := z.Send(packet)
 	if err != nil {
 		log.Error(err)
 	} else {
-		log.Info("successfully sent")
+		log.Info("Successfully sent")
 	}
 
 }

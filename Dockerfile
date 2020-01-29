@@ -1,7 +1,7 @@
 # Build
 FROM golang:1 as build
 
-WORKDIR /go/src/github.com/gmauleon/alertmanager-zabbix-webhook
+WORKDIR /go/src/github.com/its-bussdev/alertmanager-zabbix-webhook
 ADD . .
 
 RUN go get -d -v ./...
@@ -15,7 +15,7 @@ RUN adduser webhook -s /bin/false -D webhook
 RUN mkdir -p /etc/webhook
 COPY config.yaml /etc/webhook
 
-COPY --from=build /go/src/github.com/gmauleon/alertmanager-zabbix-webhook/alertmanager-zabbix-webhook /usr/bin
+COPY --from=build /go/src/github.com/its-bussdev/alertmanager-zabbix-webhook/alertmanager-zabbix-webhook /usr/bin
 
 EXPOSE 8080
 USER webhook
